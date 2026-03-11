@@ -1,0 +1,113 @@
+{
+  "Zyrthi Setup/Loop": {
+    "prefix": "zyrthi",
+    "body": [
+      "#include \"zyrthi/core/core.h\"",
+      "",
+      "void setup(void) {",
+      "	${1:/* initialization code */}",
+      "}",
+      "",
+      "void loop(void) {",
+      "	${2:/* main loop code */}",
+      "}"
+    ],
+    "description": "Zyrthi 基础框架 - setup/loop 模式"
+  },
+  "GPIO Mode": {
+    "prefix": "gpio_mode",
+    "body": "gpio_mode(${1:pin}, ${2:OUTPUT});",
+    "description": "设置 GPIO 模式"
+  },
+  "GPIO Write": {
+    "prefix": "gpio_write",
+    "body": "gpio_write(${1:pin}, ${2:HIGH});",
+    "description": "GPIO 输出"
+  },
+  "GPIO Read": {
+    "prefix": "gpio_read",
+    "body": "gpio_result_t result = gpio_read(${1:pin});\nif (result.status == GPIO_OK) {\n\t${2:/* use result.value */}\n}",
+    "description": "GPIO 读取"
+  },
+  "GPIO Toggle": {
+    "prefix": "gpio_toggle",
+    "body": "gpio_toggle(${1:pin});",
+    "description": "GPIO 翻转"
+  },
+  "UART Init": {
+    "prefix": "uart_init",
+    "body": [
+      "uart_hdl_t uart = uart_default();",
+      "uart_status_t status = uart_init(uart, ${1:115200});",
+      "if (status != UART_OK) {",
+      "	${2:/* handle error */}",
+      "}"
+    ],
+    "description": "UART 初始化"
+  },
+  "UART Write": {
+    "prefix": "uart_write",
+    "body": "uart_write(uart_default(), (const u8_t*)\"${1:text}\\n\", ${2:strlen(\"text\\n\")});",
+    "description": "UART 发送数据"
+  },
+  "UART Read": {
+    "prefix": "uart_read",
+    "body": "u8_t buf[${1:64}];\nuart_result_t result = uart_read(uart_default(), buf, sizeof(buf));\nif (result.status == UART_OK) {\n\t${2:/* process result.bytes_read */}\n}",
+    "description": "UART 读取数据"
+  },
+  "I2C Init": {
+    "prefix": "i2c_init",
+    "body": "i2c_hdl_t i2c = i2c_default();\ni2c_status_t status = i2c_init(i2c, ${1:100000}); // ${1:100kHz}",
+    "description": "I2C 初始化"
+  },
+  "I2C Write": {
+    "prefix": "i2c_write",
+    "body": "u8_t data[] = {${1:0x00}};\ni2c_write(i2c, ${2:device_addr}, data, sizeof(data));",
+    "description": "I2C 写入"
+  },
+  "Delay ms": {
+    "prefix": "delay",
+    "body": "delay_ms(${1:1000});",
+    "description": "毫秒延时"
+  },
+  "Delay us": {
+    "prefix": "delay_us",
+    "body": "delay_us(${1:100});",
+    "description": "微秒延时"
+  },
+  "Millis": {
+    "prefix": "millis",
+    "body": "u32_t start = millis();",
+    "description": "获取毫秒时间戳"
+  },
+  "ADC Read": {
+    "prefix": "adc_read",
+    "body": "adc_result_t result = adc_read(${1:channel});\nif (result.status == ADC_OK) {\n\t${2:/* use result.value */}\n}",
+    "description": "ADC 读取"
+  },
+  "PWM Init": {
+    "prefix": "pwm_init",
+    "body": "pwm_hdl_t pwm = pwm_init(${1:pin}, ${2:1000}); // ${2:1kHz}\npwm_set_duty(pwm, ${3:50}); // ${3:50%} duty",
+    "description": "PWM 初始化"
+  },
+  "Printf Debug": {
+    "prefix": "printf",
+    "body": "printf(\"${1:format}\\n\"${2:, args});",
+    "description": "Printf 调试输出"
+  },
+  "Log Info": {
+    "prefix": "logi",
+    "body": "printf(\"[INFO] ${1:message}\\n\");",
+    "description": "Log info"
+  },
+  "Log Error": {
+    "prefix": "loge",
+    "body": "printf(\"[ERROR] ${1:message}\\n\");",
+    "description": "Log error"
+  },
+  "Log Data": {
+    "prefix": "logd",
+    "body": "printf(\"[DATA] ${1:name}:${2:value}\\n\");",
+    "description": "Log data for Plotter"
+  }
+}
