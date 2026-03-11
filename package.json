@@ -259,7 +259,7 @@
     "pretest": "npm run compile",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha --ui tdd out/test/monitor/*.test.js out/test/snippets/*.test.js",
+    "test:unit": "mocha --ui tdd out/test/monitor/*.test.js out/test/snippets/*.test.js out/test/cli/outputParser.test.js out/test/config/configParser.test.js",
     "package": "vsce package"
   },
   "devDependencies": {
