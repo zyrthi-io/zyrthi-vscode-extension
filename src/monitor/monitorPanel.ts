@@ -3,11 +3,19 @@ import * as vscode from 'vscode';
 export class MonitorPanel {
     public static currentPanel: MonitorPanel | undefined;
     private readonly panel: vscode.WebviewPanel;
+    private readonly disposables: vscode.Disposable[] = [];
     private context: vscode.ExtensionContext;
 
     constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
         this.panel = panel;
         this.context = context;
+        
+        // Clean up when panel is closed
+        this.panel.onDidDispose(() => {
+            MonitorPanel.currentPanel = undefined;
+            this.disposables.forEach(d => d.dispose());
+            this.disposables.length = 0;
+        }, null, this.disposables);
     }
 
     public static getInstance(context: vscode.ExtensionContext): MonitorPanel {
@@ -47,7 +55,7 @@ export class MonitorPanel {
                 }
             },
             undefined,
-            this.context.subscriptions
+            this.disposables
         );
     }
 

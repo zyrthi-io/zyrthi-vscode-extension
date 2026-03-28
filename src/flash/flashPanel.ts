@@ -5,6 +5,7 @@ import * as path from 'path';
 export class FlashPanel {
     public static currentPanel: FlashPanel | undefined;
     private readonly panel: vscode.WebviewPanel;
+    private readonly disposables: vscode.Disposable[] = [];
     private context: vscode.ExtensionContext;
     private firmwarePath: string = '';
     private firmwareData: ArrayBuffer | null = null;
@@ -16,7 +17,9 @@ export class FlashPanel {
         // Clean up when panel is closed
         this.panel.onDidDispose(() => {
             FlashPanel.currentPanel = undefined;
-        }, null, context.subscriptions);
+            this.disposables.forEach(d => d.dispose());
+            this.disposables.length = 0;
+        }, null, this.disposables);
         
         this.update();
     }
@@ -80,7 +83,7 @@ export class FlashPanel {
                 }
             },
             undefined,
-            this.context.subscriptions
+            this.disposables
         );
     }
 
