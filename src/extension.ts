@@ -8,13 +8,13 @@ import { StatusBar } from './ui/statusBar';
 
 let containerManager: ContainerManager;
 let platformManager: PlatformManager;
-let flashPanel: FlashPanel;
-let monitorPanel: MonitorPanel;
 let lspClient: LspClient;
 let statusBar: StatusBar;
+let contextGlobal: vscode.ExtensionContext;
 
 export async function activate(context: vscode.ExtensionContext) {
     console.log('Zyrthi extension is activating...');
+    contextGlobal = context;
 
     // Initialize managers
     containerManager = new ContainerManager(context);
@@ -22,10 +22,6 @@ export async function activate(context: vscode.ExtensionContext) {
     
     // Initialize UI
     statusBar = new StatusBar(context, platformManager);
-    
-    // Initialize panels
-    flashPanel = FlashPanel.getInstance(context);
-    monitorPanel = MonitorPanel.getInstance(context);
     
     // Initialize LSP client
     lspClient = new LspClient(context, containerManager);
@@ -87,15 +83,7 @@ async function checkProjectConfig(context: vscode.ExtensionContext) {
         await platformManager.loadConfig(workspaceRoot);
         statusBar.updatePlatform(platformManager.getCurrentPlatform());
     } catch {
-        // No zyrthi.yaml
-        const result = await vscode.window.showInformationMessage(
-            'No zyrthi.yaml found. Initialize a new project?',
-            'Initialize',
-            'Cancel'
-        );
-        if (result === 'Initialize') {
-            await selectPlatform();
-        }
+        // No zyrthi.yaml - silently ignore
     }
 }
 
@@ -108,8 +96,6 @@ async function selectPlatform() {
     if (selected) {
         await platformManager.setPlatform(selected);
         statusBar.updatePlatform(selected);
-        
-        // Show chip selection for this platform
         await selectChip();
     }
 }
@@ -144,7 +130,6 @@ async function build() {
         
         if (result.success) {
             vscode.window.showInformationMessage('Build successful!');
-            // Notify LSP to reload compile_commands.json
             lspClient.reloadConfig();
         } else {
             vscode.window.showErrorMessage(`Build failed: ${result.error}`);
@@ -159,7 +144,6 @@ async function flash() {
         return;
     }
 
-    // Check if build exists
     const buildPath = platformManager.getBuildPath(workspaceRoot);
     const firmwarePath = `${buildPath}/zyrthi-app.bin`;
     
@@ -170,7 +154,8 @@ async function flash() {
         return;
     }
 
-    await flashPanel.show(firmwarePath);
+    const panel = FlashPanel.getInstance(contextGlobal);
+    await panel.show(firmwarePath);
 }
 
 async function buildAndFlash() {
@@ -185,7 +170,8 @@ async function buildFlashMonitor() {
 }
 
 async function openMonitor() {
-    await monitorPanel.show();
+    const panel = MonitorPanel.getInstance(contextGlobal);
+    await panel.show();
 }
 
 async function clean() {
@@ -199,7 +185,6 @@ async function clean() {
 }
 
 async function selectPort() {
-    // WebSerial port selection happens in FlashPanel/MonitorPanel
     vscode.window.showInformationMessage('Use Flash or Monitor panel to select port');
 }
 
