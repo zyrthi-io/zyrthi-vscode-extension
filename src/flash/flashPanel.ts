@@ -12,6 +12,12 @@ export class FlashPanel {
     constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
         this.panel = panel;
         this.context = context;
+        
+        // Clean up when panel is closed
+        this.panel.onDidDispose(() => {
+            FlashPanel.currentPanel = undefined;
+        }, null, context.subscriptions);
+        
         this.update();
     }
 
