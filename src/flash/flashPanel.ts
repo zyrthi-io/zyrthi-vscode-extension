@@ -318,8 +318,11 @@ export class FlashPanel {
         // Terminal interface for esptool-js
         const terminal = {
             clean: () => { logEl.innerHTML = ''; },
+            clear: () => { logEl.innerHTML = ''; },
             writeLine: (data) => { log(data + '\n'); },
-            write: (data) => { log(data); }
+            writeln: (data) => { log(data + '\n'); },
+            write: (data) => { log(data); },
+            columns: 80
         };
         
         function log(msg) {
@@ -360,6 +363,7 @@ export class FlashPanel {
             }
             
             const baud = parseInt(document.getElementById('baud').value);
+            const initialBaud = 115200;
             
             try {
                 updateStatus('Requesting port...', 0);
@@ -371,7 +375,7 @@ export class FlashPanel {
                 port = await navigator.serial.requestPort();
                 
                 updateStatus('Connecting...', 10);
-                log('Connecting at ' + baud + ' baud...\n');
+                log('Connecting at ' + initialBaud + ' baud...\n');
                 
                 // Load esptool-js from CDN
                 if (typeof ESPLoader === 'undefined') {
@@ -381,11 +385,21 @@ export class FlashPanel {
                 // Create transport
                 const transport = new Transport(port);
                 
-                // Create loader
-                loader = new ESPLoader(transport, baud, terminal);
+                // Create loader with initial baud rate
+                loader = new ESPLoader(transport, initialBaud, terminal);
                 
                 updateStatus('Connecting to chip...', 20);
                 await loader.connect();
+                
+                updateStatus('Syncing...', 30);
+                await loader.sync();
+                
+                // Switch to high baud rate
+                if (baud !== initialBaud) {
+                    updateStatus('Changing baud rate...', 35);
+                    log('Switching to ' + baud + ' baud...\n');
+                    await loader.changeBaudRate(baud);
+                }
                 
                 updateStatus('Detecting chip...', 40);
                 await loader.detectChip();
@@ -421,13 +435,14 @@ export class FlashPanel {
             
             if (port) {
                 try {
-                    if (port.readable) {
-                        await port.cancel();
+                    if (port.readable && loader && loader.transport && loader.transport.reader) {
+                        await loader.transport.reader.cancel();
+                        loader.transport.reader.releaseLock();
                     }
                 } catch (e) {}
                 try {
-                    if (port.writable) {
-                        await port.getWriter().close();
+                    if (port.writable && loader && loader.transport && loader.transport.writer) {
+                        await loader.transport.writer.close();
                     }
                 } catch (e) {}
                 try {
@@ -444,23 +459,28 @@ export class FlashPanel {
         }
         
         function showChipInfo(loader) {
+            const chipName = loader.chipName || loader.CHIP_NAME || 'Unknown';
+            const features = loader.chipFeatures || [];
+            const crystalFreq = loader.crystalFreq || 40;
+            const macAddr = loader.macAddr || 'Unknown';
+            
             const chipInfo = document.getElementById('chipInfo');
             chipInfo.innerHTML = \`
                 <div class="chip-info-row">
                     <span class="chip-info-label">Chip:</span>
-                    <span class="chip-info-value">\${loader.chipName}</span>
+                    <span class="chip-info-value">\${chipName}</span>
                 </div>
                 <div class="chip-info-row">
                     <span class="chip-info-label">Features:</span>
-                    <span class="chip-info-value">\${loader.chipFeatures.join(', ')}</span>
+                    <span class="chip-info-value">\${features.join(', ')}</span>
                 </div>
                 <div class="chip-info-row">
                     <span class="chip-info-label">Crystal:</span>
-                    <span class="chip-info-value">\${loader.crystalFreq} MHz</span>
+                    <span class="chip-info-value">\${crystalFreq} MHz</span>
                 </div>
                 <div class="chip-info-row">
                     <span class="chip-info-label">MAC:</span>
-                    <span class="chip-info-value">\${loader.macAddr}</span>
+                    <span class="chip-info-value">\${macAddr}</span>
                 </div>
             \`;
         }
@@ -567,7 +587,24 @@ export class FlashPanel {
             }
             
             async setBaudrate(baud) {
-                // Serial port already opened with baud rate
+                // Reopen port with new baud rate
+                if (this.port) {
+                    try {
+                        if (this.reader) {
+                            await this.reader.cancel();
+                            this.reader.releaseLock();
+                            this.reader = null;
+                        }
+                        if (this.writer) {
+                            await this.writer.close();
+                            this.writer = null;
+                        }
+                        await this.port.close();
+                        await this.port.open({ baudRate: baud });
+                    } catch (e) {
+                        console.error('Failed to change baud rate:', e);
+                    }
+                }
             }
             
             async read() {
@@ -578,7 +615,7 @@ export class FlashPanel {
                 if (done) {
                     this.reader.releaseLock();
                     this.reader = null;
-                    return new Uint8Array(0);
+                    return null;
                 }
                 return value;
             }
@@ -599,12 +636,16 @@ export class FlashPanel {
             
             async disconnect() {
                 if (this.reader) {
-                    this.reader.cancel();
+                    try {
+                        await this.reader.cancel();
+                    } catch (e) {}
                     this.reader.releaseLock();
                     this.reader = null;
                 }
                 if (this.writer) {
-                    await this.writer.close();
+                    try {
+                        await this.writer.close();
+                    } catch (e) {}
                     this.writer = null;
                 }
             }
