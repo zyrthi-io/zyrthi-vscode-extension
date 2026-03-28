@@ -130,27 +130,7 @@
         }
       ]
     },
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "zyrthi",
-          "title": "Zyrthi",
-          "icon": "$(circuit-board)"
-        }
-      ]
-    },
-    "views": {
-      "zyrthi": [
-        {
-          "id": "zyrthi.platform",
-          "name": "Platform"
-        },
-        {
-          "id": "zyrthi.project",
-          "name": "Project"
-        }
-      ]
-    },
+    
     "configuration": {
       "title": "Zyrthi",
       "properties": {
