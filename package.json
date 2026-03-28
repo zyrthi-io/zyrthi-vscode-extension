@@ -1,0 +1,209 @@
+{
+  "name": "zyrthi-vscode-extension",
+  "displayName": "Zyrthi - Embedded Development",
+  "description": "Containerized embedded development for VS Code",
+  "version": "0.1.0",
+  "publisher": "zyrthi-io",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Other"
+  ],
+  "keywords": [
+    "embedded",
+    "esp32",
+    "stm32",
+    "zyrthi",
+    "c",
+    "container",
+    "podman"
+  ],
+  "activationEvents": [
+    "workspaceContains:zyrthi.yaml",
+    "onLanguage:c",
+    "onLanguage:cpp"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "zyrthi.selectPlatform",
+        "title": "Zyrthi: Select Platform",
+        "icon": "$(circuit-board)"
+      },
+      {
+        "command": "zyrthi.selectChip",
+        "title": "Zyrthi: Select Chip",
+        "icon": "$(chip)"
+      },
+      {
+        "command": "zyrthi.build",
+        "title": "Zyrthi: Build",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "zyrthi.flash",
+        "title": "Zyrthi: Flash",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "zyrthi.buildAndFlash",
+        "title": "Zyrthi: Build & Flash",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "zyrthi.buildFlashMonitor",
+        "title": "Zyrthi: Build, Flash & Monitor",
+        "icon": "$(play)"
+      },
+      {
+        "command": "zyrthi.monitor",
+        "title": "Zyrthi: Serial Monitor",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "zyrthi.clean",
+        "title": "Zyrthi: Clean Build",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "zyrthi.selectPort",
+        "title": "Zyrthi: Select Serial Port",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "zyrthi.installPlatform",
+        "title": "Zyrthi: Install Platform",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "zyrthi.containerStatus",
+        "title": "Zyrthi: Container Status",
+        "icon": "$(container)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "zyrthi.build",
+        "key": "ctrl+shift+b",
+        "mac": "cmd+shift+b",
+        "when": "editorLangId == c || editorLangId == cpp"
+      },
+      {
+        "command": "zyrthi.flash",
+        "key": "ctrl+shift+u",
+        "mac": "cmd+shift+u",
+        "when": "editorLangId == c || editorLangId == cpp"
+      },
+      {
+        "command": "zyrthi.monitor",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "editorLangId == c || editorLangId == cpp"
+      },
+      {
+        "command": "zyrthi.buildFlashMonitor",
+        "key": "f6",
+        "mac": "f6",
+        "when": "editorLangId == c || editorLangId == cpp"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "zyrthi.build",
+          "group": "navigation@1",
+          "when": "resourceFilename =~ /\\.(c|cpp|h|hpp)$/"
+        },
+        {
+          "command": "zyrthi.flash",
+          "group": "navigation@2",
+          "when": "resourceFilename =~ /\\.(c|cpp|h|hpp)$/"
+        },
+        {
+          "command": "zyrthi.monitor",
+          "group": "navigation@3",
+          "when": "resourceFilename =~ /\\.(c|cpp|h|hpp)$/"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zyrthi",
+          "title": "Zyrthi",
+          "icon": "$(circuit-board)"
+        }
+      ]
+    },
+    "views": {
+      "zyrthi": [
+        {
+          "id": "zyrthi.platform",
+          "name": "Platform"
+        },
+        {
+          "id": "zyrthi.project",
+          "name": "Project"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Zyrthi",
+      "properties": {
+        "zyrthi.containerRuntime": {
+          "type": "string",
+          "enum": ["podman", "docker"],
+          "default": "podman",
+          "description": "Container runtime to use"
+        },
+        "zyrthi.buildContainerImage": {
+          "type": "string",
+          "default": "ghcr.io/zyrthi-io/build-esp32:latest",
+          "description": "Build container image"
+        },
+        "zyrthi.monitor.baudRate": {
+          "type": "number",
+          "default": 115200,
+          "description": "Default baud rate for serial monitor"
+        },
+        "zyrthi.monitor.showTimestamp": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show timestamp in serial monitor"
+        },
+        "zyrthi.flash.baudRate": {
+          "type": "number",
+          "default": 921600,
+          "description": "Flash baud rate"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "esptool.ts": "^0.14.0",
+    "vscode-languageclient": "^9.0.1",
+    "yaml": "^2.3.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zyrthi-io/zyrthi-vscode-extension"
+  },
+  "license": "MIT"
+}
